@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Karaokê TV</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --pink: #ff2d78;
+    --blue: #00d4ff;
+    --dark: #0a0a0f;
+    --panel: #12121a;
+    --border: #ffffff12;
+  }
+
+  body {
+    background: var(--dark);
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ── PLAYER ── */
+  #player-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  #player {
+    width: 100%;
+    flex: 1;
+    background: #000;
+  }
+
+  /* Barra de "tocando agora" */
+  #now-playing {
+    background: linear-gradient(90deg, var(--pink), var(--blue));
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 52px;
+  }
+
+  #now-playing .label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 3px;
+    opacity: .7;
+    white-space: nowrap;
+  }
+
+  #now-playing .titulo {
+    font-weight: 900;
+    font-size: 1.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #now-playing .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #fff;
+    animation: blink 1s infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: .2; }
+  }
+
+  /* ── FILA LATERAL ── */
+  #sidebar {
+    width: 320px;
+    background: var(--panel);
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--border);
+  }
+
+  #sidebar-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #sidebar-header h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 4px;
+    background: linear-gradient(90deg, var(--pink), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  #sidebar-header p {
+    font-size: .8rem;
+    opacity: .4;
+    margin-top: 2px;
+  }
+
+  #fila-lista {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+  }
+
+  #fila-lista::-webkit-scrollbar { width: 4px; }
+  #fila-lista::-webkit-scrollbar-track { background: transparent; }
+  #fila-lista::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+  .item {
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: background .2s;
+    background: #ffffff07;
+  }
+
+  .item.active {
+    background: linear-gradient(135deg, #ff2d7822, #00d4ff22);
+    border: 1px solid #ff2d7844;
+  }
+
+  .item .num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    opacity: .3;
+    width: 22px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .item.active .num { opacity: 1; color: var(--pink); }
+
+  .item .nome {
+    font-size: .88rem;
+    font-weight: 700;
+    line-height: 1.3;
+    flex: 1;
+  }
+
+  .item .mic { font-size: 1rem; flex-shrink: 0; }
+
+  /* Fila vazia */
+  #fila-vazia {
+    text-align: center;
+    padding: 40px 20px;
+    opacity: .3;
+    display: none;
+  }
+
+  #fila-vazia .big { font-size: 3rem; }
+  #fila-vazia p { font-size: .85rem; margin-top: 8px; }
+
+  /* QR / URL hint */
+  #url-hint {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: .75rem;
+    opacity: .35;
+    line-height: 1.6;
+  }
+
+  /* Tela idle */
+  #idle-screen {
+    position: absolute;
+    inset: 0;
+    background: var(--dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    z-index: 10;
+  }
+
+  #idle-screen h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 8vw, 7rem);
+    letter-spacing: 10px;
+    background: linear-gradient(135deg, var(--pink), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: .6; }
+  }
+
+  #idle-screen p {
+    opacity: .4;
+    font-size: 1rem;
+    letter-spacing: 2px;
+  }
+
+  /* Estrelas de fundo */
+  #stars {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .star {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    opacity: 0;
+    animation: twinkle var(--d) var(--delay) infinite;
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0; }
+    50%       { opacity: .8; }
+  }
+</style>
+</head>
+
+<body>
+
+<div id="player-area">
+  <!-- Tela idle (sem música) -->
+  <div id="idle-screen">
+    <div id="stars"></div>
+    <h1>KARAOKÊ DO FELIPÃO</h1>
+    <p>Adicione músicas pelo celular para começar 🎤</p>
+  </div>
+
+  <div id="player"></div>
+
+  <div id="now-playing">
+    <div class="dot"></div>
+    <span class="label">TOCANDO</span>
+    <span class="titulo" id="titulo-atual">—</span>
+  </div>
+</div>
+
+<div id="sidebar">
+  <div id="sidebar-header">
+    <h2>🎵 Fila</h2>
+    <p id="contador">Nenhuma música na fila</p>
+  </div>
+
+  <div id="fila-lista">
+    <div id="fila-vazia">
+      <div class="big">🎤</div>
+      <p>A fila está vazia.<br>Adicione músicas pelo controle!</p>
+    </div>
+  </div>
+
+  <div id="url-hint">
+    Acesse o controle em:<br>
+    <strong id="url-controle">...</strong>
+  </div>
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+  // ── Estrelas decorativas ──
+  const starsEl = document.getElementById("stars");
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement("div");
+    s.className = "star";
+    s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;--delay:${Math.random()*5}s`;
+    starsEl.appendChild(s);
+  }
+
+  // ── URL do controle ──
+  document.getElementById("url-controle").textContent =
+    location.origin + "/controle";
+
+  // ── Estado ──
+  let player;
+  let playerReady = false;
+  let fila = [];
+  let tocandoId = null;   // ID do vídeo que está tocando agora
+  let transicionando = false;
+
+  // ── Player ──
+  window.onYouTubeIframeAPIReady = function () {
+    player = new YT.Player("player", {
+      height: "100%",
+      width: "100%",
+      playerVars: {
+        autoplay: 1,
+        rel: 0,
+        origin: location.origin   // ← obrigatório para IP local
+      },
+      events: {
+        onReady: () => { playerReady = true; },
+        onStateChange: (e) => {
+          if (e.data === YT.PlayerState.ENDED) proximaMusica();
+        },
+        onError: (e) => {
+          // Códigos 5 = HTML5, 100 = não encontrado, 101/150 = embed bloqueado
+          console.warn("Vídeo bloqueado ou indisponível, código:", e.data);
+          mostrarAviso("⚠️ Vídeo bloqueado pelo YouTube — pulando...");
+          setTimeout(proximaMusica, 2500);
+        }
+      }
+    });
+  };
+
+  // ── Aviso de erro na tela ──
+  function mostrarAviso(msg) {
+    let el = document.getElementById("aviso-erro");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "aviso-erro";
+      el.style.cssText = `
+        position:absolute; bottom:70px; left:50%; transform:translateX(-50%);
+        background:#ff2d78cc; color:#fff; padding:12px 24px; border-radius:50px;
+        font-weight:700; font-size:.95rem; z-index:20; text-align:center;
+        backdrop-filter:blur(8px);
+      `;
+      document.getElementById("player-area").appendChild(el);
+    }
+    el.textContent = msg;
+    el.style.display = "block";
+    clearTimeout(el._timer);
+    el._timer = setTimeout(() => { el.style.display = "none"; }, 3000);
+  }
+
+  // ── Remover primeira da fila (servidor) ──
+  async function removerPrimeira() {
+    await fetch("/fila/primeira", { method: "DELETE" });
+  }
+
+  // ── Tocar primeira da fila ──
+  function tocarPrimeira() {
+    if (!playerReady || fila.length === 0 || transicionando) return;
+    const m = fila[0];
+    if (m.id === tocandoId) return;   // já está tocando
+
+    tocandoId = m.id;
+    document.getElementById("titulo-atual").textContent = m.titulo;
+    document.getElementById("idle-screen").style.display = "none";
+    player.loadVideoById(m.id);
+    renderFila();
+  }
+
+  // ── Próxima ──
+  async function proximaMusica() {
+    if (transicionando) return;
+    transicionando = true;
+    tocandoId = null;
+    await removerPrimeira();
+    await atualizarFila();
+    transicionando = false;
+  }
+
+  // ── Atualizar fila ──
+  async function atualizarFila() {
+    try {
+      const res = await fetch("/fila");
+      fila = await res.json();
+      renderFila();
+
+      if (fila.length === 0) {
+        // Fila vazia
+        tocandoId = null;
+        document.getElementById("titulo-atual").textContent = "—";
+        document.getElementById("idle-screen").style.display = "flex";
+        if (playerReady) player.stopVideo?.();
+      } else {
+        tocarPrimeira();
+      }
+    } catch (e) {
+      console.log("Erro:", e);
+    }
+  }
+
+  // ── Render ──
+  function renderFila() {
+    const lista = document.getElementById("fila-lista");
+    const vazia = document.getElementById("fila-vazia");
+    const contador = document.getElementById("contador");
+
+    if (fila.length === 0) {
+      vazia.style.display = "block";
+      contador.textContent = "Nenhuma música na fila";
+      lista.querySelectorAll(".item").forEach(e => e.remove());
+      return;
+    }
+
+    vazia.style.display = "none";
+    contador.textContent = fila.length === 1
+      ? "1 música na fila"
+      : `${fila.length} músicas na fila`;
+
+    // Rebuild só se mudou
+    lista.querySelectorAll(".item").forEach(e => e.remove());
+
+    fila.forEach((m, i) => {
+      const el = document.createElement("div");
+      el.className = "item" + (i === 0 ? " active" : "");
+      el.innerHTML = `
+        <span class="num">${i + 1}</span>
+        <span class="nome">${m.titulo}</span>
+        <span class="mic">${i === 0 ? "🎤" : "🎵"}</span>
+      `;
+      lista.appendChild(el);
+    });
+  }
+
+  // ── Loop a cada 2s ──
+  setInterval(atualizarFila, 2000);
+  atualizarFila();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,5 @@
+-keep class org.nanohttpd.** { *; }
+-keep class okhttp3.** { *; }
+-keep class com.karaoke.app.** { *; }
+-dontwarn okhttp3.**
+-dontwarn org.nanohttpd.**
