@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+# PyInstaller
+build/
+*.spec
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# Keep dist but not build artifacts
+dist/**/*
+!dist/KaraokeSystem.exe
