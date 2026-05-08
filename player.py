@@ -76,7 +76,12 @@ function onYouTubeIframeAPIReady(){
       poll();
       if(pendingVideo){player.loadVideoById(pendingVideo.id);pendingVideo=null}
     },
-    onStateChange:sc}
+    onStateChange:sc,
+    onError:function(e){
+      document.getElementById('wait').innerHTML='<div class="ico">&#9888;</div><p>Video bloqueado. Pulando...</p>';
+      document.getElementById('wait').style.display='block';
+      setTimeout(function(){fetch('/next')},2000);
+    }}
   });
 }
 setTimeout(function(){
